@@ -1,0 +1,49 @@
+// Grab Contact ID's
+targetContactId = "807134000000874781";
+sourceContactId = "807134000001755093";
+
+// Get source contact's accounts
+accountsListResp = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/contacts/" + sourceContactId + "/accounts?limit=50&from=0"
+	type :GET
+	connection:"YOUR CONNECTION"
+];
+
+// Check if accounts exist
+accounts = accountsListResp.get("data");
+if(accounts == null || accounts.isEmpty())
+{
+	info "No accounts to associate.";
+	return;
+}
+
+// Build account association list as a list of maps
+accountData = list();
+for each  account in accounts
+{
+	accMap = Map();
+	accMap.put("id",account.get("id"));
+	// keep ID as string
+	accMap.put("isAccountTicketsViewable",true);
+	accountData.add(accMap);
+}
+info accMap;
+
+// Build payload map
+payloadMap = Map();
+payloadMap.put("data",accountData);
+
+//  Make the POST request 
+body_json = payloadMap.toString();
+associateResp = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/contacts/" + targetContactId + "/associateAccounts"
+	type :POST
+	body:body_json
+	headers:{"Content-Type":"application/json"}
+	connection:"YOUR CONNECTION"
+];
+
+// Output response
+info associateResp;

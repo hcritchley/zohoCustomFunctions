@@ -1,0 +1,61 @@
+string get_chat_transcript(string conversation_id)
+{
+
+get_transcript = invokeurl
+[
+	url :"https://salesiq.zoho.com/api/v2/ORG_NAME/conversations/" + conversation_id + "/messages?limit=150"
+	type :GET
+	connection:"YOUR CONNECTION"
+];
+info get_transcript;
+chat_data = get_transcript.get("data")
+;
+// HTML wrapper
+html = "<div style='font-family:Arial, sans-serif; font-size:14px;'>";
+html = html + "<h3 style='margin:0 0 10px 0;'>Chat Transcript</h3>";
+html = html + "<div style='border:1px solid #ddd; padding:10px; border-radius:8px;'>";
+for each  chat in chat_data
+{
+	typeVal = chat.get("type");
+	if(typeVal == "text")
+	{
+		sender_info = chat.get("sender");
+		message_info = chat.get("message");
+		sender = ifnull(sender_info.get("name"),"Unknown");
+		sender_type = ifnull(sender_info.get("type"),"Unknown");
+		message = ifnull(message_info.get("text"),"");
+		// Escape HTML
+		senderEsc = sender.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll("\"","&quot;").replaceAll("'","&#39;");
+		messageEsc = message.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll("\"","&quot;").replaceAll("'","&#39;").replaceAll("\n","<br>");
+		// Default values
+		nameColor = "#000000";
+		displayName = senderEsc;
+		// Apply sender styling
+		if(sender_type == "bot")
+		{
+			displayName = "BOT NAME";
+			nameColor = "#1565c0";
+			// blue
+		}
+		else if(sender_type == "visitor")
+		{
+			displayName = "👤 " + senderEsc;
+			nameColor = "#2e7d32";
+			// green
+		}
+		else if(sender_type == "operator" || sender_type == "agent")
+		{
+			displayName = "🧑‍💼 " + senderEsc;
+			nameColor = "#ff8c00";
+			// orange
+		}
+		html = html + "<div style='margin:0 0 14px 0; padding:8px 10px; background:#fafafa; border-radius:6px;'>";
+		html = html + "<b style='color:" + nameColor + ";'>" + displayName + ":</b> ";
+		html = html + "<span>" + messageEsc + "</span>";
+		html = html + "</div>";
+	}
+}
+html = html + "</div></div>";
+info html;
+return html;
+}
