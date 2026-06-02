@@ -1,0 +1,20 @@
+// Defining inputs
+impact = input.impact;
+urgency = input.urgency;
+ticket_id = input.ticket_id;
+// Create a matrix for Priority 
+priorityMatrix = {"High":{"High":"High","Medium":"High","Low":"Medium"},"Medium":{"High":"High","Medium":"Medium","Low":"Low"},"Low":{"High":"Medium","Medium":"Low","Low":"Low"}};
+priority = priorityMatrix.get(impact).get(urgency);
+info priority;
+// Body for API Call
+update_map = Map();
+update_map.put("priority",priority);
+// Zoho Desk API Call
+priority_update = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticket_id
+	type :PATCH
+	body:update_map.toString()
+	connection:"YOUR CONNECTION"
+];
+info priority_update;
