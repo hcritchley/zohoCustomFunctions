@@ -1,0 +1,38 @@
+// Constants
+numberOfHours = 360;
+orgId = "YOOUR DESK ORG-ID";
+// Get the current ticket info
+TicketInfo = zoho.desk.getRecordById(orgId,"tickets",TicketID);
+oldTicketNumber = TicketInfo.get("ticketNumber");
+lastModified = TicketInfo.get("closedTime").toTime("yyyy-MM-dd'T'HH:mm:ss");
+status = TicketInfo.get("status");
+// Calculate hours since last modified
+hoursBetween = now.hoursBetween(lastModified).abs();
+if(hoursBetween >= numberOfHours || billing_check is true)
+{
+	// Get the latest thread of the ticket
+	threadResponse = zoho.desk.getRelatedRecords(orgId,"threads","tickets",TicketID);
+	if(threadResponse.get("data") != null)
+	{
+		latestThreadID = threadResponse.get("data").get(0).get("id");
+		// Split the ticket
+		splitTicketResponse = zoho.desk.ticket.split(orgId,TicketID,latestThreadID);
+		info "splitTicketResponse ::::" + splitTicketResponse;
+		info "======================================================";
+		NewTicketID = splitTicketResponse.get("id");
+		NewTicketNumber = splitTicketResponse.get("ticketNumber");
+		// Update the new ticket with a reference to the old ticket number
+		updatePayload = {"subject":"Follow-up to Ticket #" + oldTicketNumber};
+		updateResponse = zoho.desk.update(orgId,"tickets",NewTicketID,updatePayload);
+		info "updateResponse ::::" + updateResponse;
+	}
+}
+else
+{
+	// If not old enough, just update status to 'Client Responded'
+	customFieldsMap = TicketInfo.get("customFields");
+	Billing_Check = customFieldsMap.get("Billing Check");
+	jsonString = {"status":"Client Responded"};
+	TicketResponse = zoho.desk.update(orgId,"tickets",TicketID,jsonString);
+	info TicketResponse;
+}
