@@ -1,0 +1,38 @@
+// Get desk article id from origin article
+article_id = 80713444010058636;
+
+// Set new Article category ID
+category_id = "807424000100339316";
+
+// API Call to get all the info we need from 
+old_article = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/articles/" + article_id
+	type :Get
+	connection:"YOUR CONNECTION"
+];
+
+
+//create a map to send to Desk
+info_map = Map();
+info_map.put("categoryId",category_id);
+info_map.put("title",old_article.get("title"));
+info_map.put("answer",old_article.get("answer"));
+
+//manually set permission
+info_map.put("permission","AGENTS");
+
+info_map.put("status","Draft");
+
+body_json = info_map.toString();
+
+// API Call to create the KB Elsewhere
+new_article = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/articles"
+	type :POST
+	body:body_json
+	headers:{"Content-Type":"application/json"}
+	connection:"YOUR CONNECTION"
+];
+info new_article;
